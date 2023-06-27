@@ -1,34 +1,91 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<h1 align="center">Counter Up Trigger</h1>
 
-## Getting Started
+### Interface
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+```ts
+export interface ICounterCard {
+  maxCount: number;
+  label: string;
+  title: string;
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Counter Card Component
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```tsx
+import { ICounterCard } from "@/Interface";
+import { useEffect, useRef, useState } from "react";
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+export const CounterCard = ({ label, title, maxCount }: ICounterCard) => {
+  const [count, setCount] = useState<number>(0);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
 
-## Learn More
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      setIsVisible(entry.isIntersecting);
+    });
 
-To learn more about Next.js, take a look at the following resources:
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, [sectionRef, setIsVisible]);
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
 
-## Deploy on Vercel
+    if (isVisible) {
+      intervalId = setInterval(() => {
+        if (count < maxCount) {
+          setCount((prevCount) => prevCount + 1);
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 20);
+    }
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isVisible, count, setCount]);
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+  return (
+    <div
+      ref={sectionRef}
+      className="flex gap-5 md:gap-9 justify-center items-center lg:items-start flex-col text-center lg:text-start w-full"
+    >
+      <h1 className="text-4xl md:text-5xl font-extrabold">
+        {count}
+        <span className="text-primary">{label}</span>
+      </h1>
+      <p className="text-base md:text-xl font-bold">{title}</p>
+    </div>
+  );
+};
+```
+
+### Counter Main Component
+
+```tsx
+import { CounterCard } from "@/components";
+
+const CounterUpTrigger = () => (
+  <main className="w-screen h-screen flex flex-col justify-center items-center">
+    <div className="bg-green-500 py-12 px-8 md:py-20 md:px-16 w-fit lg:w-full max-w-6xl mx-auto rounded-[32px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 justify-items-center">
+      <CounterCard maxCount={100} label="M" title="Client Satisfaction" />
+      <CounterCard maxCount={24} label=" h" title="Expert Support Team" />
+      <CounterCard maxCount={98} label=" k+" title="Sales Count" />
+      <CounterCard maxCount={208} label=" +" title="Client Worldwide" />
+    </div>
+  </main>
+);
+
+export default CounterUpTrigger;
+```
