@@ -21,6 +21,7 @@ export const CounterCard = ({ label, title, maxCount }: ICounterCard) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
 
+// Update isVisible State. up and down trigger the counter
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;
@@ -31,6 +32,7 @@ export const CounterCard = ({ label, title, maxCount }: ICounterCard) => {
       observer.observe(sectionRef.current);
     }
 
+// Cleanup the observer when the component is unmounted
     return () => {
       if (sectionRef.current) {
         observer.unobserve(sectionRef.current);
@@ -38,6 +40,7 @@ export const CounterCard = ({ label, title, maxCount }: ICounterCard) => {
     };
   }, [sectionRef, setIsVisible]);
 
+// Update counter and duration time duration 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -48,9 +51,10 @@ export const CounterCard = ({ label, title, maxCount }: ICounterCard) => {
         } else {
           clearInterval(intervalId);
         }
-      }, 20);
+      }, 20); // Adjust the interval duration as needed
     }
 
+  // Cleanup the interval when the component is unmounted or when visibility changes
     return () => {
       clearInterval(intervalId);
     };
